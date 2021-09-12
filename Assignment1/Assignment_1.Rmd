@@ -1,1 +1,60 @@
+---
+title: "Untitled"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+install.packages("dplyr")
+library(dplyr)
+
+getwd()
+
+setwd("/Users/ishika/Documents/GitHub/64060_-inisha") # to set working directory.
+
+```{r}
+
+getwd() #To check present working directory
+Assign <-read.csv("Book1.csv") #I have saved the data from excel in the data frame named Assign. I will use the data frame when ever i need the excel data for math or graphical representation.
+Assign
+```
+
+```{r}
+
+summary(Assign) #Descriptice Analysis of the excel data 
+```
+```{r}
+summary(Assign$Total.Revenue) #Quantitative analysis for total revenue 
+```
+
+
+```{r}
+
+Ftable <- table(Assign$Item.Type) #This is a categorical descriptive analysis
+Ftable
+```
+
+```{r}
+#filter (Assign, Country == "Angola" ) # Transforming data using filter function. Filter essentially revive data row wise. 
+summary(Assign$Unit.Price)
+summary(log2(Assign$Unit.Price))
+```
+
+```{r}
+barplot(Assign$Unit.Price,Assign$Total.Cost,xlab="Price",ylab="Cost") # Displaying barplot for unit price and total cost
+```
+
+```{r}
+plot(Assign$Unit.Price,Assign$Total.Cost) # scatter plot for unit price and Total cost.
+```
