@@ -1,0 +1,89 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+library(caret)
+library(FNN)
+library(fastDummies)
+librlibrary(readr)
+ary(class)
+library(dplyr)
+library(CRANsearcher)
+# setting the path 
+getwd()
+
+#Reading the file
+'''{r}
+Universal_bank<-read.csv("UniversalBank (5).csv")
+summary (Universal_bank)
+'''
+
+#Removing the ID and zip code columns from dataset
+'''{r}
+Universal_bank<- Universal_bank[ ,c(-1,-5)]
+str(Universal_bank)
+'''
+#Converting it into factors
+'''{r}
+ Universal_bank$Education<-as.factor(Universal_bank$Education)
+View(Universal_bank)
+'''
+#Creating column education into dummy variables
+```{r}
+Universal_bank[, 8] <- as.data.frame(model.matrix(~ Universal_bank[, 8] - 1))
+```
+# Splitting the data into training and validation
+```{r}
+set.seed(200)
+train_data <- sample(row.names(Universal_bank), 0.6*dim(Universal_bank)[1])
+validation_data <- setdiff(row.names(Universal_bank), train_data)
+
+train_df <- Universal_bank[train_data, ]
+validation_df <- Universal_bank[validation_data, ]
+```
+
+# new data to be predicted
+
+'''{r}
+new_data <- data.frame(Age = 40, Experience = 10, Income = 84, Family = 2, CCAvg = 2,
+                     Education = 2, Mortgage = 0, Securities.Account = 0, CD.Account = 0,
+                     Online = 1, CreditCard = 1)
+'''
+#normalising
+'''{r}
+train_norm_df <- train_df
+validation_norm_df <- validation_df
+bank_norm_df <- Universal_bank
+
+scale_fun <- preProcess(train_df[,-21], method = c("center", "scale"))
+train_norm_df<- predict(scale_fun, train_df[,-21])
+validation_norm_df <- predict(scale_fun,validation_df[,-21])
+bank_norm_df <- predict(scale_fun,Universal_bank[,-21])
+dim(train_norm_df)
+summary(train_norm_df)
+summary(validation_norm_df)
+'''
