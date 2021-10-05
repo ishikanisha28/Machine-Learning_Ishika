@@ -1,0 +1,155 @@
+---
+title: "ml prj"
+author: "ISHIKA NISHA"
+date: "10/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+#Imporing Liabrary
+```{r}
+library(readr)
+library(dplyr)
+library(fastDummies)
+library(caret)
+library(class)
+library(gmodels)
+library(FNN)
+```
+
+
+#Setting working directory
+
+getwd()
+
+#Loading Data
+'''{r}
+Universal_bank<- read_csv("UniversalBank (5).csv")
+print(Universal_bank)
+'''
+#removing ID and ZipCode Columns from Dataset 
+'''{r}
+Universal_bank <- Universal_bank[,c(-1,-5)]
+str(Universal_bank)
+'''
+#Converting into factors
+'''{r}
+Universal_bank$`Personal Loan` <-as.factor(Universal_bank$`Personal Loan`)
+Universal_bank$Education <-as.factor(Universal_bank$Education)
+View(Universal_bank)
+'''
+#Creating dummy variable
+'''{r}
+Universal_bank_d <- dummy_cols(Universal_bank %>% select(-`Personal Loan`))
+Universal_bank_d <- Universal_bank_d %>% select(-Education) %>% 
+  mutate(`Personal Loan` = Universal_bank$`Personal Loan`)
+summary(Universal_bank_d)
+'''
+#Dividing data into 60:40(Training and validation)
+'''{r}
+set.seed(20)
+Universal_bank_DP<- createDataPartition( Universal_bank_d$`Personal Loan`, p=0.6, list = FALSE)
+Universal_bank_train <- Universal_bank_d[Universal_bank_DP,]
+Universal_bank_valid <- Universal_bank_d[-Universal_bank_DP,]
+
+Universal_bank_DPT<- createDataPartition( Universal_bank_d$`Personal Loan`, p=0.4, list = FALSE)
+Universal_bank_trainT <- Universal_bank_d[Universal_bank_DPT,]
+Universal_bank_validT <- Universal_bank_d[-Universal_bank_DPT,]
+
+#Summary
+trainNormn <-Universal_bank_train
+validNormn <-Universal_bank_valid
+trainNormT<- Universal_bank_validT
+'''
+#Using Preprocess
+'''{r}
+processN<-preProcess(Universal_bank_train[, 1:13], method = c("center", "scale"))
+'''
+#Normalising tge columns
+'''{r}
+trainNormn[, 1:13]<- predict(processN,Universal_bank_train[, 1:13])#normalizing 13 columns
+validNormn[, 1:13]<- predict(processN,Universal_bank_valid[, 1:13])
+trainNormT[, 1:13]<- predict(processN,Universal_bank_validT[, 1:13])
+testnorm<-predict(processN,Universal_bank_trainT[, 1:13])
+
+'''
+
+# performing K = 1
+'''{r}
+Q1 <- data.frame(40, 10, 84, 2, 2, 0, 0, 0, 1, 1, 0, 1, 0)
+
+
+var(trainNormn[, 1:13])
+var(validNorm[, 1:13])
+KNT<- knn(trainNormn[, 1:13], testnorm, cl = trainNormT$`Personal Loan`,, k=1, prob = TRUE)
+summary(KNT)
+'''
+
+#cross table
+'''{r}
+CrossTest <- Universal_bank_trainT$`Personal Loan`
+predicted <- KNT
+CrossTable(x=CrossTest, y =KNT, prop.chisq = FALSE)
+'''
+
+#value of k
+(classfing with best value of k and classifying usking k)
+
+'''{r}
+processN<-preProcess(Universal_bank_train[, 1:13], method = c("center", "scale"))
+trainNormT[, 1:13]<- predict(processN,Universal_bank_validT[, 1:13])
+trainNormn[, 1:13]<- predict(processN,Universal_bank_train[, 1:13])
+summary(trainNormn)
+summary(validNormn)
+
+
+KNTN<- knn(trainNormn[, 1:13], testnorm, cl = trainNormT$`Personal Loan`,, k=9, prob = TRUE)
+summary(KNTN)
+'''
+
+#Dividing the data using createDataPartition(training-50% valid-30% test-20%)
+'''{r}
+Universal_bank2<- createDataPartition( Universal_bank_d$`Personal Loan`, p=0.5, list = FALSE)
+Universal_bank2_train <- Universal_bank_d[Universal_bank2,]
+Universal_bank2_test<- Universal_bank_d[-Universal_bank2,]
+
+Universal_bank2_valid <- createDataPartition( Universal_bank_d$`Personal Loan`, p=0.6, list = FALSE)
+Universal_bank2_trainNew <- Universal_bank2_test[Universal_bank2_valid,]
+Universal_bank2_testNew<- Universal_bank2_test[-Universal_bank2_valid,]
+'''
+
+# Summary
+
+train2Norm<- Universal_bank2_train
+valid2Norm<- Universal_bank2_test
+Universal_bank_Norm<- Universal_bank2_testNew
+
+
+
+
+
+
+
