@@ -1,0 +1,279 @@
+---
+title: "Final Assignment"
+author: "ishika nisha"
+date: "12/12/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+#Importing libraries
+```{r}
+library('ggplot2')
+library('ggthemes') 
+library('scales')
+library('dplyr') 
+library('mice')
+library('randomForest') 
+library('data.table')
+library('gridExtra')
+library('corrplot') 
+library('GGally')
+library('e1071')
+library('ggpubr')
+library('tidyverse')
+library('broom')
+library('AICcmodavg')
+```
+#Checking the path
+```{r}
+getwd()
+```
+#Importing Dataset
+```{r}
+Data <- read.csv("CarPrice_Assignment.csv")
+```
+#Description of Data
+```{r}
+head(Data)
+```
+
+```{r}
+tail(data)
+```
+#Details about the Number of Rows and Columns
+```{r}
+print(paste("Number of records: ", nrow(Data)))
+print(paste("Number of features: ", ncol(Data)))
+```
+#Summary of the data
+```{r}
+summary(Data)
+```
+# columns names
+```{r}
+colnames(Data) 
+```
+# Unique Carname
+```{r}
+unique(Data$CarName) 
+```
+
+#Feature Selection (Numeric columns are taken inro consideration)
+```{r}
+maindf <- Data[,c("car_ID","symboling","wheelbase",       
+"carlength","carwidth","carheight","curbweight","enginesize","boreratio",      
+"stroke","compressionratio","horsepower",      
+"peakrpm","citympg","highwaympg",      
+"price")]
+```
+
+#Feature Selection (Non-Numeric columns are taken inro consideration)
+
+```{r}
+maindf1<- Data[,c("CarName","fueltype","aspiration",       
+"carbody","drivewheel","enginelocation",
+"price")]
+```
+#Details of selection
+```{r}
+head(maindf)
+head(maindf1)
+```
+
+#Checking for null values
+```{r}
+sum(is.na(maindf1))
+sum(is.na(maindf))
+```
+
+#Correlation Matrix
+```{r}
+#Plot Correlation matrix
+cor(maindf)
+```
+
+```{r}
+library(ggcorrplot)
+corr <- round(cor(maindf), 1)
+```
+
+#Plot
+```{r}
+
+ggcorrplot(corr,
+           type = "lower",
+           lab = TRUE, 
+           lab_size = 3,  
+           colors = c("tomato2", "white", "springgreen3"),
+           title="Correlogram of Car Dataset", 
+           ggtheme=theme_bw)
+```
+
+#Plot scatterplot matrix
+```{r}
+pairs(~ horsepower + citympg + highwaympg + price, data = maindf,
+       main = "Scatterplot Matrix")
+```
+
+#Plot boxplot for checking outliers
+```{r}
+par(mfrow=c(2, 3))  # divide graph area in 2 columns
+boxplot(maindf$horsepower, main="horsepower")
+boxplot(maindf$citympg, main="citympg")
+boxplot(maindf$price, main="price")
+boxplot(maindf$highwaympg, main="highwaympg")
+boxplot(maindf$carheight, main="carheight")
+
+```
+
+# Plot scatterplots
+# Scatterplot(price vs citympg)
+```{r}
+theme_set(theme_bw()) 
+g <- ggplot(maindf, aes(price,citympg))
+g + geom_count(col="tomato3", show.legend=F) +
+  labs(y="citympg", 
+       x="price", 
+       title="price vs citympg")
+```
+
+#Scatterplot(price vs horsepower)
+```{r}
+theme_set(theme_bw()) 
+g <- ggplot(Data, aes(price, horsepower))
+g + geom_count(col="tomato3", show.legend=F) +
+  labs(y="horsepower", 
+       x="price", 
+       title="Price vs Horsepower")
+```
+# In a similar way we can show the relationship of various factors with Price
+
+```{r}
+plot(x = maindf$highwaympg, y = maindf$citympg,
+     xlab = "highwaympg",
+     ylab = "citympg",
+     xlim = c(0, 50), 
+     ylim = c(0, 20),
+     main = "highwaympg vs citympg",
+)
+```
+#Plot density plot to check normality
+```{r}
+library(e1071)
+
+par(mfrow=c(2, 3)) 
+
+plot(density(maindf$horsepower), main="Density Plot: horsepower", ylab="Frequency",
+     sub=paste("Skewness:", round(e1071::skewness(maindf$horsepower), 2)))  
+polygon(density(maindf$horsepower), col="green")
+
+plot(density(maindf$citympg), main="Density Plot: citympg", ylab="Frequency",
+     sub=paste("Skewness:", round(e1071::skewness(maindf$citympg), 2)))  
+polygon(density(maindf$citympg), col="orange")
+
+plot(density(maindf$highwaympg), main="Density Plot: highwaympg", ylab="Frequency",
+     sub=paste("Skewness:", round(e1071::skewness(maindf$highwaympg), 2)))  
+polygon(density(maindf$highwaympg), col="green")
+
+plot(density(maindf$price), main="Density Plot: price", ylab="Frequency",
+     sub=paste("Skewness:", round(e1071::skewness(maindf$price), 2)))  
+polygon(density(maindf$price), col="orange")
+
+plot(density(maindf$carheight), main="Density Plot: carheight", ylab="Frequency",
+     sub=paste("Skewness:", round(e1071::skewness(maindf$carheight), 2)))  
+polygon(density(maindf$carheight), col="green")
+
+plot(density(maindf$enginesize), main="Density Plot: enginesize", ylab="Frequency",
+     sub=paste("Skewness:", round(e1071::skewness(maindf$enginesize), 2)))  
+polygon(density(maindf$eng), col="green")
+
+```
+
+# Plot univariate linear regression between horsepower and price
+```{r}
+ggplot(maindf,aes(y=price,x=horsepower)) +
+       geom_point() + 
+        xlim(0, 300) +
+        ylim(0, 20000) +
+        geom_smooth(formula = y ~ x,method="lm")
+```
+#In a similar way other can also be done
+
+#Factorizing
+
+```{r}
+Data$CarName<- factor(Data$CarName)
+Data$fueltype<- factor(Data$fueltype)
+Data$aspiration<- factor(Data$aspiration)
+Data$doornumber<- factor(Data$doornumber)
+Data$carbody<- factor(Data$carbody)
+Data$drivewheel<- factor(Data$drivewheel)
+Data$enginelocation<- factor(Data$enginelocation)
+Data$enginetype<- factor(Data$enginetype)
+Data$cylinernumber<- factor(Data$cylindernumber)
+Data$fuelsystem<- factor(Data$fuelsystem)
+```
+
+
+#SINGLE MODEL REGRESSION (Non-Numeric)
+#When we take in consideration fuel type the R2 is only 1%
+```{r}
+linearmodel_S1 = lm(price~fueltype,
+                 data = maindf1)
+summary(linearmodel_S1)
+```
+
+#MULTIPLE MODEL REGRESSION
+#Try to improve your model by additionally including the other aspects. Does this improve the 
+model accuracy?
+
+```{r}
+linearmodel_M1 = lm(price~fueltype+CarName,
+                 data = maindf1)
+summary(linearmodel_M1)
+```
+#As we can see this features are best considerating the above dataset as the accuracy is 95%
+
+#SINGLE MODEL REGRESSION (Numeric)
+#When we take in consideration carheight type the R2 is only 1%
+```{r}
+linearmodel_S2 = lm(price~carheight,
+                 data = maindf)
+summary(linearmodel_S2)
+```
+#MULTIPLE MODEL REGRESSION
+#Try to improve your model by additionally including the other aspects. Does this improve the 
+model accuracy?
+#Building the Model
+```{r}
+linearmodel_M2 = lm(price~carheight + carwidth + wheelbase,
+                 data = maindf)
+summary(linearmodel_M2)
+```
+#here the R2 is 58%   
+
+
+```{r}
+linearmodel_M3 = lm(price~horsepower + citympg + highwaympg + carheight + enginesize,
+                 data = maindf)
+summary(linearmodel_M3)
+```
+#As we can see this features are best considerating the above dataset as the accuracy is 80%
+
+#CROSS CHEACKING
+```{r}
+aov(linearmodel_M1)
+aov(linearmodel_M2)
+aov(linearmodel_M3)
+```
+
+#After using ANOVA we can easily identify which factors influence the most
+(horsepower, enginesize,carwidth,carheight,highwaympg)
+
+#Building the best Model(Numeric)
+```{r}
+linearmodel_M4 = lm(price~horsepower + carwidth + carheight + highwaympg + enginesize,
+                 data = maindf)
+summary(linearmodel_M4)
+```
